@@ -1,65 +1,87 @@
 "use client";
-import { motion } from "framer-motion";
+
 import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function BusinessPage() {
-  const products = [
+  const categories = [
     {
-      id: "pro1",
-      name: "Wireless Headphones",
-      price: "$45.99",
-      img: "/products/headphone.jpg",
+      id: "fashion",
+      title: "Fashion",
+      image: "/marketplace/fashion.jpeg",
     },
     {
-      id: "pro2",
-      name: "Classic Wrist Watch",
-      price: "$62.50",
-      img: "/products/watch.jpg",
+      id: "beauty",
+      title: "Beauty",
+      image: "/marketplace/beauty.jpeg",
     },
     {
-      id: "pro3",
-      name: "Gaming Mouse",
-      price: "$29.99",
-      img: "/products/mouse.jpg",
+      id: "home",
+      title: "Home",
+      image: "/marketplace/home.jpeg",
+    },
+    {
+      id: "electronics",
+      title: "Electronics",
+      image: "/marketplace/electronics.jpeg",
+    },
+    {
+      id: "pets",
+      title: "Pets",
+      image: "/marketplace/pets.jpeg",
+    },
+    {
+      id: "Women",
+      title: "Women",
+      image: "/marketplace/women.jpeg",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-white text-black px-6 py-20">
+    <div className="min-h-screen bg-white px-6 py-16">
+      {/* Title */}
       <motion.h1
-        className="text-4xl font-bold text-center"
+        className="text-3xl md:text-4xl font-bold text-center text-gray-900"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
       >
-        Marketplace
+        Discover Products from Entrepreneurs
       </motion.h1>
 
-      {/* PRODUCT GRID */}
-      <div className="max-w-6xl mx-auto mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-        {products.map((item) => (
+      {/* Subtitle */}
+      <p className="text-center text-gray-600 mt-3">
+        Browse categories and connect with business owners directly.
+      </p>
+
+      {/* Category Grid */}
+      <div className="max-w-6xl mx-auto mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+        {categories.map((cat, i) => (
           <motion.div
-            key={item.id}
-            className="bg-white border rounded-xl shadow-md hover:shadow-xl transition p-4 cursor-pointer"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            key={cat.id}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.1 }}
           >
-            <div className="w-full h-52 relative rounded-lg overflow-hidden">
-              <Image
-                src={item.img}
-                alt={item.name}
-                fill
-                className="object-cover hover:scale-110 transition"
-              />
-            </div>
+            <Link
+              href={`/business/${cat.id}`}
+              className="block bg-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition"
+            >
+              {/* Category Image */}
+              <div className="relative w-full h-28 sm:h-32">
+                <Image
+                  src={cat.image}
+                  alt={cat.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
 
-            <h2 className="mt-4 font-semibold text-lg">{item.name}</h2>
-            <p className="text-black/70">{item.price}</p>
-
-            <button className="mt-4 w-full bg-black text-white py-2 rounded-lg hover:bg-gray-900 transition">
-              View Product
-            </button>
+              {/* Title */}
+              <div className="p-3 text-center text-gray-800 font-medium">
+                {cat.title}
+              </div>
+            </Link>
           </motion.div>
         ))}
       </div>
