@@ -1,40 +1,73 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
-const AuthContext = createContext<any>(null);
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role?: "user" | "seller" | "admin";
+  subscription: boolean;
+}
 
-export function AuthProvider({ children }: any) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState("");
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  refreshUser: () => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
+};
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refreshUser = async () => {
+    console.log("[Auth] fetching /api/auth/me");
+
+    try {
+      const res = await fetch("/api/auth/me", {
+        credentials: "include", // 🔑 send cookies
+      });
+
+      const data = await res.json();
+
+      console.log("[Auth] /me response", data);
+
+      setUser(data.user ?? null);
+    } catch (err) {
+      console.error("[Auth] /me failed", err);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+   const logout = async () => {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+
+    setUser(null);
+  };
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-
-    if (savedToken) setToken(savedToken);
-    if (savedUser) setUser(JSON.parse(savedUser));
+    refreshUser();
   }, []);
 
-  const login = (userData: any, jwt: string) => {
-    setUser(userData);
-    setToken(jwt);
-    localStorage.setItem("token", jwt);
-    localStorage.setItem("user", JSON.stringify(userData));
-  };
-
-  const logout = () => {
-    setUser(null);
-    setToken("");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-  };
+  console.log("[AuthProvider] render →", { user, loading });
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, refreshUser, logout, }}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-export const useAuth = () => useContext(AuthContext);
+};

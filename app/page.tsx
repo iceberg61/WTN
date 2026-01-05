@@ -4,10 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import Stars from "./components/Stars";
+import dynamic from "next/dynamic";
+
+const Stars = dynamic(() => import("./components/Stars"), {
+  ssr: false,
+});
+
 
 export default function Home() {
-  const [hovered, setHovered] = useState<"none" | "library" | "business">("none");
+  const [hovered, setHovered] = useState<"none" | "library" | "store">("none");
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 bg-black text-white overflow-hidden">
@@ -63,7 +68,7 @@ export default function Home() {
                 ${
                   hovered === "library"
                     ? "bg-yellow-400 text-white border-yellow-400 scale-110 opacity-100 z-10 shadow-[0_0_20px_rgba(250,204,21,0.5)]" // ACTIVE (Visible)
-                    : hovered === "business"
+                    : hovered === "store"
                     ? "opacity-0 scale-50 blur-sm pointer-events-none" 
                     : "border-yellow-400 text-yellow-400 opacity-75 hover:bg-yellow-400/10" 
                 }
@@ -77,16 +82,16 @@ export default function Home() {
           {/* RIGHT BUTTON (Business) */}
           <div
             className="relative"
-            onMouseEnter={() => setHovered("business")}
+            onMouseEnter={() => setHovered("store")}
             onMouseLeave={() => setHovered("none")}
           >
             <Link
-              href="/business"
+              href="/shop"
               className={`
                 inline-block px-10 py-4 rounded-xl text-xl font-semibold border-2 transition-all duration-500 ease-in-out
                 ${
-                  hovered === "business"
-                    ? "bg-yellow-400 text-white border-yellow-400 scale-110 opacity-100 z-10 shadow-[0_0_20px_rgba(250,204,21,0.5)]" // ACTIVE (Visible)
+                  hovered === "store"
+                    ? "bg-yellow-400 text-white border-yellow-400 scale-110 opacity-100 z-10 shadow-[0_0_20px_rgba(250,204,21,0.5)]" 
                     : hovered === "library"
                     ? "opacity-0 scale-50 blur-sm pointer-events-none" 
                     : "border-yellow-400 text-yellow-400 opacity-75 hover:bg-yellow-400/10" 
@@ -108,8 +113,8 @@ export default function Home() {
           <Link href="/auth/login" className="hover:text-yellow-400 transition">
             Login
           </Link>
-          <Link href="/auth/subscribe" className="hover:text-yellow-400 transition">
-            Subscribe
+          <Link href="/admin" className="hover:text-yellow-400 transition">
+            Admin
           </Link>
         </motion.div>
       </div>

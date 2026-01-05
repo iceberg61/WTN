@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import Stars from "../../components/Stars";
+import { Eye, EyeOff } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const Stars = dynamic(() => import("../../components/Stars"), {
+  ssr: false,
+});
+
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -10,7 +16,7 @@ export default function RegisterPage() {
     email: "",
     password: "",
   });
-
+  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -75,16 +81,28 @@ export default function RegisterPage() {
         />
 
         {/* Password */}
-        <input
-          type="password"
-          placeholder="Password"
-          className={`w-full mb-2 rounded-lg bg-black px-4 py-3 outline-none border ${
-            form.password && !passwordValid
-              ? "border-red-400"
-              : "border-yellow-400/30 focus:border-yellow-400"
-          }`}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-        />
+        <div className="relative mb-2">
+          <input
+            type={showPass ? "text" : "password"}
+            placeholder="Password"
+            className={`w-full rounded-lg bg-black px-4 py-3 pr-12 outline-none border ${
+              form.password && !passwordValid
+                ? "border-red-400"
+                : "border-yellow-400/30 focus:border-yellow-400"
+            }`}
+            onChange={(e) =>
+              setForm({ ...form, password: e.target.value })
+            }
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPass(!showPass)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-yellow-400 hover:opacity-80"
+          >
+            {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
 
         {/* Password rules */}
         <ul className="text-xs mb-4 space-y-1">

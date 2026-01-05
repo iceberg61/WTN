@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import Stars from "../../components/Stars";
+import { Eye, EyeOff } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const Stars = dynamic(() => import("../../components/Stars"), {
+  ssr: false,
+});
 
 export default function LoginPage() {
-  const { login } = useAuth();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -21,6 +25,7 @@ export default function LoginPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
+      credentials: "include", // 🔑 important for cookies
     });
 
     const data = await res.json();
@@ -31,8 +36,8 @@ export default function LoginPage() {
       return;
     }
 
-    login(data.user);
-    window.location.href = "/";
+    // ✅ Cookie is now set → AuthProvider will pick it up
+    window.location.href = "/admin"; // or "/"
   };
 
   return (
@@ -52,21 +57,30 @@ export default function LoginPage() {
           </Link>
         </p>
 
-        {/* Email */}
         <input
           type="email"
           placeholder="Email address"
-          className="w-full mb-4 rounded-lg bg-black border border-yellow-400/30 px-4 py-3 outline-none focus:border-yellow-400"
+          className="w-full mb-4 rounded-lg bg-black border border-yellow-400/30 px-4 py-3 outline-none"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        {/* Password */}
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full mb-2 rounded-lg bg-black border border-yellow-400/30 px-4 py-3 outline-none focus:border-yellow-400"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="relative mb-2">
+          <input
+            type={showPass ? "text" : "password"}
+            placeholder="Password"
+            className="w-full rounded-lg bg-black border border-yellow-400/30 px-4 py-3 outline-none"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPass(!showPass)}
+            className="absolute right-3 top-3 text-yellow-400"
+          >
+            {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
 
         <div className="flex justify-end mb-4">
           <Link
@@ -82,7 +96,7 @@ export default function LoginPage() {
         <button
           onClick={submit}
           disabled={loading || !email || !password}
-          className="w-full rounded-lg bg-yellow-400 py-3 font-semibold text-black hover:opacity-90 transition disabled:opacity-50"
+          className="w-full rounded-lg bg-yellow-400 py-3 font-semibold text-black disabled:opacity-60"
         >
           {loading ? "Logging in..." : "Login"}
         </button>

@@ -11,21 +11,21 @@ interface Star {
 }
 
 export default function Stars() {
-  const [stars, setStars] = useState<Star[]>([]);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const generated = Array.from({ length: 120 }).map(() => ({
+  
+  const [stars] = useState<Star[]>(() =>
+    Array.from({ length: 120 }).map(() => ({
       top: Math.random() * 100,
       left: Math.random() * 100,
       size: 1 + Math.random() * 1,
       duration: 1.5 + Math.random() * 4,
       delay: Math.random() * 3,
-      color: Math.random() > 0.7 ? "#FFD700" : "#FFFFFF", 
-    }));
-    setStars(generated);
-  }, []);
+      color: Math.random() > 0.7 ? "#FFD700" : "#FFFFFF",
+    }))
+  );
 
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  
   useEffect(() => {
     const handleMove = (e: MouseEvent) => {
       setMousePos({
@@ -33,13 +33,13 @@ export default function Stars() {
         y: (e.clientY / window.innerHeight - 0.5) * 4,
       });
     };
+
     window.addEventListener("mousemove", handleMove);
     return () => window.removeEventListener("mousemove", handleMove);
   }, []);
 
   return (
     <>
-      {/* Stars */}
       {stars.map((star, i) => (
         <div
           key={i}

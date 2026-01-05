@@ -1,167 +1,186 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import Stars from "../../components/Stars";
+import axios from "axios";
+import { Mail, Hash, Lock } from "lucide-react";
 
 export default function ForgotPasswordPage() {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const sendOtp = () => {
-    if (!email) {
-      setError("Please enter your email");
-      return;
-    }
+  /* STEP 1 */
+  const handleRequestOtp = async () => {
+    if (!email) return setMessage("Please enter your email");
 
-    setError("");
     setLoading(true);
+    setMessage("");
 
-    // backend later
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await axios.post("/api/auth/forgot-password", { email });
       setStep(2);
-      setSuccess("OTP sent to your email");
-    }, 1200);
+      setMessage("OTP sent to your email");
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const verifyOtp = () => {
+  /* STEP 2 */
+  const handleVerifyOtp = async () => {
     if (otp.length !== 6) {
-      setError("OTP must be 6 digits");
-      return;
+      return setMessage("Enter a valid 6-digit OTP");
     }
 
-    setError("");
     setLoading(true);
+    setMessage("");
 
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await axios.post("/api/auth/verify-otp", { email, otp });
       setStep(3);
-    }, 1000);
+      setMessage("OTP verified");
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || "Invalid OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const resetPassword = () => {
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
+  /* STEP 3 ✅ FIXED */
+  const handleResetPassword = async () => {
+    if (password.length < 6) {
+      return setMessage("Password must be at least 6 characters");
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
+      return setMessage("Passwords do not match");
     }
 
-    setError("");
     setLoading(true);
+    setMessage("");
 
-    setTimeout(() => {
+    try {
+      await axios.post("/api/auth/reset-password", {
+        email,
+        otp,        // ✅ REQUIRED
+        password,
+      });
+
+      setMessage("Password reset successful. Redirecting...");
+
+      setTimeout(() => {
+        window.location.href = "/auth/login";
+      }, 2000);
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || "Reset failed");
+    } finally {
       setLoading(false);
-      setSuccess("Password reset successfully");
-    }, 1200);
+    }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-black text-white overflow-hidden px-4">
-      <Stars />
-      <div className="absolute inset-0 bg-black/40" />
+    <div className="flex items-center justify-center min-h-screen bg-neutral-900 p-6">
+      <div className="bg-neutral-800 p-8 rounded-2xl w-full max-w-md">
 
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-yellow-400/40 bg-black/60 p-8 backdrop-blur-md">
-        <h1 className="text-2xl font-bold text-yellow-400 mb-2">
-          Reset Password
+        <h1 className="text-3xl font-bold text-white mb-6 text-center">
+          {step === 3 ? "Set New Password" : "Forgot Password"}
         </h1>
 
-        <p className="text-sm text-white/70 mb-6">
-          Secure your account using one-time password verification
-        </p>
+        {message && (
+          <p className="mb-4 text-center text-sm text-yellow-400">
+            {message}
+          </p>
+        )}
 
-        {/* STEP 1 – EMAIL */}
+        {/* STEP 1 */}
         {step === 1 && (
           <>
-            <input
-              type="email"
-              placeholder="Email address"
-              className="w-full mb-4 rounded-lg bg-black border border-yellow-400/30 px-4 py-3 outline-none focus:border-yellow-400"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <div className="flex items-center gap-2 bg-neutral-700 px-4 py-3 rounded-xl mb-6">
+              <Mail size={20} />
+              <input
+                type="email"
+                className="bg-transparent text-white outline-none w-full"
+                placeholder="email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
             <button
-              onClick={sendOtp}
+              onClick={handleRequestOtp}
               disabled={loading}
-              className="w-full rounded-lg bg-yellow-400 py-3 font-semibold text-black"
+              className="w-full bg-blue-600 text-white py-3 rounded-xl"
             >
-              {loading ? "Sending OTP..." : "Send OTP"}
+              {loading ? "Sending..." : "Send OTP"}
             </button>
           </>
         )}
 
-        {/* STEP 2 – OTP */}
+        {/* STEP 2 */}
         {step === 2 && (
           <>
-            <input
-              type="text"
-              maxLength={6}
-              placeholder="Enter 6-digit OTP"
-              className="w-full mb-4 text-center tracking-widest text-lg rounded-lg bg-black border border-yellow-400/30 px-4 py-3 outline-none focus:border-yellow-400"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-            />
+            <div className="flex items-center gap-2 bg-neutral-700 px-4 py-3 rounded-xl mb-6">
+              <Hash size={20} />
+              <input
+                type="text"
+                maxLength={6}
+                className="bg-transparent text-white outline-none w-full text-center tracking-widest"
+                value={otp}
+                onChange={(e) =>
+                  setOtp(e.target.value.replace(/\D/g, ""))
+                }
+              />
+            </div>
 
             <button
-              onClick={verifyOtp}
+              onClick={handleVerifyOtp}
               disabled={loading}
-              className="w-full rounded-lg bg-yellow-400 py-3 font-semibold text-black"
+              className="w-full bg-green-600 text-white py-3 rounded-xl"
             >
               {loading ? "Verifying..." : "Verify OTP"}
             </button>
           </>
         )}
 
-        {/* STEP 3 – NEW PASSWORD */}
+        {/* STEP 3 */}
         {step === 3 && (
           <>
-            <input
-              type="password"
-              placeholder="New password"
-              className="w-full mb-3 rounded-lg bg-black border border-yellow-400/30 px-4 py-3 outline-none focus:border-yellow-400"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className="flex items-center gap-2 bg-neutral-700 px-4 py-3 rounded-xl mb-4">
+              <Lock size={20} />
+              <input
+                type="password"
+                className="bg-transparent text-white outline-none w-full"
+                placeholder="New password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
 
-            <input
-              type="password"
-              placeholder="Confirm password"
-              className="w-full mb-4 rounded-lg bg-black border border-yellow-400/30 px-4 py-3 outline-none focus:border-yellow-400"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+            <div className="flex items-center gap-2 bg-neutral-700 px-4 py-3 rounded-xl mb-6">
+              <Lock size={20} />
+              <input
+                type="password"
+                className="bg-transparent text-white outline-none w-full"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
 
             <button
-              onClick={resetPassword}
+              onClick={handleResetPassword}
               disabled={loading}
-              className="w-full rounded-lg bg-yellow-400 py-3 font-semibold text-black"
+              className="w-full bg-purple-600 text-white py-3 rounded-xl"
             >
               {loading ? "Resetting..." : "Reset Password"}
             </button>
           </>
         )}
-
-        {error && <p className="text-red-400 text-sm mt-4">{error}</p>}
-        {success && <p className="text-green-400 text-sm mt-4">{success}</p>}
-
-        <div className="mt-6 text-center text-sm">
-          <Link href="/auth/login" className="text-yellow-400 hover:underline">
-            Back to login
-          </Link>
-        </div>
       </div>
     </div>
   );
