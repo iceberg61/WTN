@@ -17,18 +17,30 @@ export function SubscriptionProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
 
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Wait until auth is fully resolved
     if (authLoading) return;
 
-    setIsSubscribed(Boolean(user?.subscription));
-    setLoading(false);
-  }, [authLoading, user]);
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch("/api/subscription/status", {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        setIsSubscribed(Boolean(data.isSubscribed));
+      } catch {
+        setIsSubscribed(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatus();
+  }, [authLoading]);
 
   return (
     <SubscriptionContext.Provider value={{ isSubscribed, loading }}>

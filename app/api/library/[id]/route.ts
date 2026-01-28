@@ -30,12 +30,26 @@ export async function GET(
     );
   }
 
-  
-  if (material.isPremium && !user.subscription) {
-    return NextResponse.json(
-      { message: "Subscription required" },
-      { status: 403 }
-    );
+  // 🔒 Premium gate
+  if (material.isPremium) {
+    const sub = user.subscription;
+
+    if (!sub) {
+      return NextResponse.json(
+        { message: "Subscription required" },
+        { status: 403 }
+      );
+    }
+
+    const now = new Date();
+    const expiresAt = new Date(sub.expiresAt);
+
+    if (sub.status !== "active" || expiresAt <= now) {
+      return NextResponse.json(
+        { message: "Subscription expired" },
+        { status: 403 }
+      );
+    }
   }
 
   return NextResponse.json(material);
