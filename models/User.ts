@@ -16,14 +16,15 @@ const UserSchema = new mongoose.Schema(
     subscription: {
       status: {
         type: String,
-        enum: ["active", "expired"],
-        default: "expired",
+        enum: ["none", "active", "expired"],
+        default: "none",
       },
       expiresAt: {
         type: Date,
         default: null,
       },
     },
+
 
 
     

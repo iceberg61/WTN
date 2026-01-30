@@ -9,6 +9,7 @@ import {
   Library,
   LogOut,
   User,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useState } from "react";
@@ -31,14 +32,39 @@ const links = [
   },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
 
   return (
-    <aside className="w-64 min-h-screen bg-zinc-900 border-r border-zinc-800 flex flex-col">
+    <aside
+      className={`
+        fixed inset-y-0 left-0 z-40
+        w-64 bg-zinc-900 border-r border-zinc-800
+        flex flex-col
+        transition-transform duration-300 ease-in-out
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        md:static md:translate-x-0 md:min-h-screen
+      `}
+    >
+      {/* Mobile close button */}
+      <div className="md:hidden flex justify-end px-4 py-3 border-b border-zinc-800">
+        <button
+          onClick={onClose}
+          className="p-2 rounded-md hover:bg-zinc-800"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
       {/* Logo / Brand */}
       <div className="px-6 py-5 border-b border-zinc-800">
         <h1 className="text-xl font-bold text-yellow-400">
@@ -58,6 +84,7 @@ export default function AdminSidebar() {
             <Link
               key={link.href}
               href={link.href}
+              onClick={onClose}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition
                 ${
                   active
@@ -72,9 +99,9 @@ export default function AdminSidebar() {
           );
         })}
 
-        {/* Library */}
         <Link
           href="/library"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white transition"
         >
           <Library size={18} />
@@ -108,7 +135,10 @@ export default function AdminSidebar() {
         {open && (
           <div className="absolute bottom-20 left-4 right-4 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-lg z-50">
             <button
-              onClick={() => router.push("/")}
+              onClick={() => {
+                onClose();
+                router.push("/");
+              }}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800"
             >
               <User size={16} />
@@ -118,6 +148,7 @@ export default function AdminSidebar() {
             <button
               onClick={() => {
                 logout();
+                onClose();
                 router.push("/auth/login");
               }}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-zinc-800"

@@ -4,16 +4,17 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useAuth } from "../context/AuthContext";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const Stars = dynamic(() => import("../components/Stars"), { ssr: false });
 
 export default function SubscribePage() {
-  const { isSubscribed, loading } = useSubscription();
+  // const { isSubscribed, loading } = useSubscription();
+  const { isSubscribed, status, loading } = useSubscription();
   const { user } = useAuth();
-  const searchParams = useSearchParams();
-  const expired = searchParams.get("expired");
+  // const searchParams = useSearchParams();
+  // const expired = searchParams.get("expired");
 
   const subscribe = async () => {
     try {
@@ -65,11 +66,18 @@ export default function SubscribePage() {
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-xl">
-          {expired && (
+          {status === "expired" && (
             <div className="mb-6 p-4 border border-red-500 rounded-lg text-red-400 text-sm">
               Your subscription has expired. Renew to regain access.
             </div>
           )}
+
+          {status === "none" && (
+            <div className="mb-6 p-4 border border-yellow-500 rounded-lg text-yellow-400 text-sm">
+              Subscribe to unlock all premium learning materials.
+            </div>
+          )}
+
 
           {isSubscribed ? (
             <div className="text-center space-y-4">

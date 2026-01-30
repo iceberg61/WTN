@@ -11,31 +11,40 @@ export async function GET() {
   const userId = await getUserFromToken();
   console.log("[SUB STATUS] userId:", userId);
 
+  // 🔒 Not logged in
   if (!userId) {
     console.log("[SUB STATUS] ❌ no auth");
-    return NextResponse.json({ isSubscribed: false });
+    return NextResponse.json({ status: "none" });
   }
 
   const user = await User.findById(userId).lean();
   console.log("[SUB STATUS] user:", user);
 
   if (!user || !user.subscription) {
-    console.log("[SUB STATUS] ❌ no subscription field");
-    return NextResponse.json({ isSubscribed: false });
+    console.log("[SUB STATUS] ❌ no subscription object");
+    return NextResponse.json({ status: "none" });
   }
 
-  const { status, expiresAt } = user.subscription;
+  const subscription = user.subscription;
+  const now = new Date();
 
-  console.log("[SUB STATUS] status:", status);
-  console.log("[SUB STATUS] expiresAt:", expiresAt);
-  console.log("[SUB STATUS] now:", new Date());
+  console.log("[SUB STATUS] raw status:", subscription.status);
+  console.log("[SUB STATUS] expiresAt:", subscription.expiresAt);
+  console.log("[SUB STATUS] now:", now);
 
-  const isSubscribed =
-    status === "active" &&
-    expiresAt &&
-    new Date(expiresAt) > new Date();
+  let finalStatus: "none" | "active" | "expired" = "none";
 
-  console.log("[SUB STATUS] ✅ isSubscribed:", isSubscribed);
+  if (subscription.status === "active") {
+    if (subscription.expiresAt && new Date(subscription.expiresAt) > now) {
+      finalStatus = "active";
+    } else {
+      finalStatus = "expired";
+    }
+  } else {
+    finalStatus = "none";
+  }
 
-  return NextResponse.json({ isSubscribed });
+  console.log("[SUB STATUS] ✅ final status:", finalStatus);
+
+  return NextResponse.json({ status: finalStatus });
 }

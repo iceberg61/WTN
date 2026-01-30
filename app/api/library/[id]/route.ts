@@ -43,35 +43,37 @@ export async function GET(
     );
   }
 
-  // 4️⃣ Premium check
+  // 4️⃣ Premium check (CORRECTED)
   if (material.isPremium) {
     const sub = user.subscription;
 
-    console.log("[LIB] premium material");
-    console.log("[LIB] subscription:", sub);
+    console.log("[LIB] subscription raw:", sub);
 
-    if (!sub) {
-      console.log("[LIB] ❌ BLOCK: no subscription");
+    // 1️⃣ NEVER SUBSCRIBED
+    if (!sub || !sub.status || sub.status === "none") {
+      console.log("[LIB] ❌ BLOCK: never subscribed");
       return NextResponse.json(
         { message: "Subscription required" },
         { status: 403 }
       );
     }
 
-    console.log("[LIB] sub.status:", sub.status);
-    console.log("[LIB] sub.expiresAt:", sub.expiresAt);
-    console.log("[LIB] now:", new Date());
-    console.log(
-      "[LIB] expired:",
-      new Date(sub.expiresAt) <= new Date()
-    );
+    // 2️⃣ EXPIRED (only if user subscribed before)
+    if (sub.status === "expired") {
+      console.log("[LIB] ❌ BLOCK: subscription expired");
+      return NextResponse.json(
+        { message: "Subscription expired" },
+        { status: 403 }
+      );
+    }
 
+    // 3️⃣ INVALID / TIME-EXPIRED ACTIVE SUB
     if (
       sub.status !== "active" ||
       !sub.expiresAt ||
       new Date(sub.expiresAt) <= new Date()
     ) {
-      console.log("[LIB] ❌ BLOCK: subscription expired/invalid");
+      console.log("[LIB] ❌ BLOCK: active but date expired");
       return NextResponse.json(
         { message: "Subscription expired" },
         { status: 403 }
