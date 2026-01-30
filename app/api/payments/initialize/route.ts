@@ -1,6 +1,3 @@
-console.log("FLW KEY:", process.env.FLW_SECRET_KEY);
-console.log("APP URL:", process.env.NEXT_PUBLIC_APP_URL);
-
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -14,32 +11,31 @@ export async function POST(req: Request) {
       );
     }
 
-    const amount = 1000; // ₦1,000 fixed plan
+    const amount = 1000;
+
+    // ✅ embed YOUR userId
     const tx_ref = `sub_${userId}_${Date.now()}`;
 
-    const res = await fetch(
-      "https://api.flutterwave.com/v3/payments",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
-          "Content-Type": "application/json",
+    const res = await fetch("https://api.flutterwave.com/v3/payments", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tx_ref,
+        amount,
+        currency: "NGN",
+        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`,
+        customer: {
+          email,
         },
-        body: JSON.stringify({
-          tx_ref,
-          amount,
-          currency: "NGN",
-          redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`,
-          customer: {
-            email,
-          },
-          customizations: {
-            title: "Premium Access",
-            description: "One-time premium subscription",
-          },
-        }),
-      }
-    );
+        customizations: {
+          title: "Premium Access",
+          description: "One-time premium subscription",
+        },
+      }),
+    });
 
     const data = await res.json();
 

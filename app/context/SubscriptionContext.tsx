@@ -6,11 +6,11 @@ import { useAuth } from "./AuthContext";
 interface SubscriptionContextType {
   isSubscribed: boolean;
   loading: boolean;
+  refresh: () => Promise<void>;
 }
 
-const SubscriptionContext = createContext<SubscriptionContextType | undefined>(
-  undefined
-);
+const SubscriptionContext =
+  createContext<SubscriptionContextType | undefined>(undefined);
 
 export function SubscriptionProvider({
   children,
@@ -22,28 +22,29 @@ export function SubscriptionProvider({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/subscription/status", {
+        cache: "no-store",
+      });
+      const data = await res.json();
+      setIsSubscribed(Boolean(data.isSubscribed));
+    } catch {
+      setIsSubscribed(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (authLoading) return;
-
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch("/api/subscription/status", {
-          cache: "no-store",
-        });
-        const data = await res.json();
-        setIsSubscribed(Boolean(data.isSubscribed));
-      } catch {
-        setIsSubscribed(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStatus();
+    if (!authLoading) {
+      refresh();
+    }
   }, [authLoading]);
 
   return (
-    <SubscriptionContext.Provider value={{ isSubscribed, loading }}>
+    <SubscriptionContext.Provider value={{ isSubscribed, loading, refresh }}>
       {children}
     </SubscriptionContext.Provider>
   );

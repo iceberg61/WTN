@@ -27,9 +27,16 @@ export default async function LibraryItemPage({ params }: PageProps) {
   );
 
   if (res.status === 401) redirect("/auth/login");
-  if (res.status === 403) 
-redirect("/subscribe?expired=true");
   if (res.status === 404) notFound();
+
+  if (res.status === 403) {
+    return (
+      <LibraryItemClient
+        material={null}
+        requiresSubscription
+      />
+    );
+  }
 
   if (!res.ok) {
     const text = await res.text();

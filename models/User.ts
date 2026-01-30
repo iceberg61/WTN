@@ -14,9 +14,17 @@ const UserSchema = new mongoose.Schema(
 
     
     subscription: {
-      type: Boolean,
-      default: false,
+      status: {
+        type: String,
+        enum: ["active", "expired"],
+        default: "expired",
+      },
+      expiresAt: {
+        type: Date,
+        default: null,
+      },
     },
+
 
     
     role: {

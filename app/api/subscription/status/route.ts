@@ -4,31 +4,38 @@ import { getUserFromToken } from "@/lib/auth";
 import User from "@/models/User";
 
 export async function GET() {
+  console.log("[SUB STATUS] checking subscription from DB");
+
   await connectDB();
 
   const userId = await getUserFromToken();
+  console.log("[SUB STATUS] userId:", userId);
 
   if (!userId) {
+    console.log("[SUB STATUS] ❌ no auth");
     return NextResponse.json({ isSubscribed: false });
   }
 
   const user = await User.findById(userId).lean();
+  console.log("[SUB STATUS] user:", user);
 
   if (!user || !user.subscription) {
+    console.log("[SUB STATUS] ❌ no subscription field");
     return NextResponse.json({ isSubscribed: false });
   }
 
   const { status, expiresAt } = user.subscription;
 
-  const now = new Date();
-  const expired = new Date(expiresAt) <= now;
+  console.log("[SUB STATUS] status:", status);
+  console.log("[SUB STATUS] expiresAt:", expiresAt);
+  console.log("[SUB STATUS] now:", new Date());
 
-  if (status !== "active" || expired) {
-    return NextResponse.json({ isSubscribed: false });
-  }
+  const isSubscribed =
+    status === "active" &&
+    expiresAt &&
+    new Date(expiresAt) > new Date();
 
-  return NextResponse.json({
-    isSubscribed: true,
-    expiresAt,
-  });
+  console.log("[SUB STATUS] ✅ isSubscribed:", isSubscribed);
+
+  return NextResponse.json({ isSubscribed });
 }
